@@ -13,32 +13,31 @@ class Aoc:
     _aoc_url: str
     _session_token: str
     _test: bool
+    _input: str
 
     def __init__(
         self,
         year: int,
         day: int,
-        test: bool = False,
-        aoc_url: str = ADVENT_OF_CODE_URL
+        aoc_url: str = ADVENT_OF_CODE_URL,
+        input_str: str = None
     ):
         self._year = year
         self._day = day
-        self._test = test
         self._aoc_url = aoc_url
         self.__set_environment()
 
+        if input_str is not None:
+            self.set_input(input_str)
+        else:
+            self.set_input(self.__get_input_from_url())
+
+
     def solve(self, fn: Callable[[str], int]) -> int:
-        return fn(self.__get_input())
+        return fn(self._input)
 
-
-    def __get_input(self) -> str:
-        if self._test:
-            return self.__get_input_from_file()
-        
-        return self.__get_input_from_url()
-
-    def __get_input_from_url(self) -> str:
-        pass
+    def set_input(self, s: str) -> None:
+        self._input = s
 
     def __get_input_from_url(self) -> str:
         session = requests.Session()

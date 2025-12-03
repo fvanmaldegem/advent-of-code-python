@@ -3,6 +3,7 @@ import os
 import argparse
 import importlib
 import time
+import sys
 from functools import cache
 from typing import Optional, Iterable
 from types import ModuleType
@@ -13,7 +14,7 @@ class App:
     __year: any
     __day: any
     __part: any
-    __test: bool
+    __input: str
     __perf: bool = False
 
     def __init__(self):
@@ -29,7 +30,7 @@ class App:
         parser.add_argument("-y", "--year", default=None)
         parser.add_argument("-d", "--day", default=None)
         parser.add_argument("-p", "--part", default=None)
-        parser.add_argument("--test", action='store_true')
+        parser.add_argument("--input", "-i", default=None)
         parser.add_argument("--perf", action='store_true')
 
         args = parser.parse_args()
@@ -37,7 +38,7 @@ class App:
         self.__year = args.year
         self.__day  = args.day
         self.__part = args.part
-        self.__test = args.test 
+        self.__input = args.input 
         self.__perf = args.perf
 
     @staticmethod
@@ -130,7 +131,11 @@ class App:
         return self.run_part(y, d, p)
 
     def run_part(self, y: int, d: int, p: int):
-        aoc = Aoc(y, d, self.__test)
+        input_str = None
+        if self.__input is not None:
+            with open(self.__input, 'r') as f:
+                input_str = str(f.read())
+        aoc = Aoc(y, d, input_str=input_str)
         module = self.__get_module(y, d)
         solution = self.__get_class(module)
         fn = self.__get_fn(solution, p)
@@ -141,7 +146,7 @@ class App:
 
         if self.__perf:
             perf = end - start
-            return print(f"{y}.{d}.{p} (took {perf} ns): {result}")
+            return print(f"{y}.{d}.{p} (took {perf/1_000_000} ms): {result}")
 
         print(f"{y}.{d}.{p}: {result}")
 
