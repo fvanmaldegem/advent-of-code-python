@@ -8,7 +8,7 @@ from functools import cache
 from typing import Optional, Iterable
 from types import ModuleType
 from collections.abc import Callable
-from src.helper import Aoc
+from src.helper.aoc import Aoc
 
 class App:
     __year: any
@@ -16,6 +16,7 @@ class App:
     __part: any
     __input: str
     __perf: bool = False
+    __total_performance_time = 0
 
     def __init__(self):
         self.__parse_args()
@@ -86,7 +87,7 @@ class App:
                 if e.is_dir() and e.name.startswith('y'):
                     valid_years.append(int(e.name.removeprefix('y')))
 
-        return valid_years
+        return sorted(valid_years)
 
     def __scan_year(self, year: int) -> Iterable[int]:
         valid_days = []
@@ -103,7 +104,7 @@ class App:
                     n = e.name.removeprefix('d').removesuffix('.py')
                     valid_days.append(int(n))
 
-        return valid_days
+        return sorted(valid_days)
 
     def __get_year(self) -> Optional[int]:
         if self.__year is not None:
@@ -118,17 +119,19 @@ class App:
             return parse_int_without_prefix(self.__part)
 
     def run(self):
-        (y, d, p) = (self.__get_year(), self.__get_day(), self.__get_part())
-        if y is None and d is None:
-            return self.run_all()
-
-        if d is None and p is None:
-            return self.run_year(y)
-
-        if p is None:
-            return self.run_day(y, d)
-
-        return self.run_part(y, d, p)
+        y, d, p = self.__get_year(), self.__get_day(), self.__get_part()
+        match (y, d, p):
+            case (None, None, None):
+                self.run_all()
+            case (int(), None, None):
+                self:run_year(y)
+            case (int(), int(), None):
+                self.run_day(y, d)
+            case (int(), int(), int()):
+                self.run_part(y, d, p)
+        
+        if self.__perf:
+            print(f"total time: {self.__total_performance_time/1_000_000} ms")
 
     def run_part(self, y: int, d: int, p: int):
         input_str = None
@@ -144,22 +147,24 @@ class App:
         result = aoc.solve(fn)
         end = time.perf_counter_ns()
 
+        perf = end - start
+        self.__total_performance_time += perf
+
         if self.__perf:
-            perf = end - start
             return print(f"{y}.{d}.{p} (took {perf/1_000_000} ms): {result}")
 
         print(f"{y}.{d}.{p}: {result}")
 
-    def run_day(self, y: int, d: int):
+    def run_day(self, y: int, d: int) -> int:
         for p in [1, 2]:
             self.run_part(y, d, p)
 
-    def run_year(self, y: int):
+    def run_year(self, y: int) -> int:
         days = self.__scan_year(y)
         for d in days:
             self.run_day(y, d)
 
-    def run_all(self):
+    def run_all(self) -> int:
         years = self.__scan_all()
         for y in years:
             self.run_year(y)
