@@ -1,10 +1,10 @@
-from ..helper.map import Map2D, Coordinate2D, Direction
+from ..helper.grid import Grid2D, Coordinate2D, Direction
 from enum import StrEnum
 
 class Solution:
     def solve1(input: str) -> int:
         count = 0
-        grid = Map2D.from_str(input, P)
+        grid = Grid2D.from_str(input, P)
     
         for pos in grid.get_coords_by_type(P.PAPERROLL):
             adjacent_roll_count = 0
@@ -23,7 +23,7 @@ class Solution:
     @staticmethod
     def solve2(input: str) -> int:
         count = 0
-        grid = Map2D.from_str(input, P)
+        grid = Grid2D.from_str(input, P)
     
         while True:
             marks: set[Coordinate2D] = set()

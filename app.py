@@ -124,7 +124,7 @@ class App:
             case (None, None, None):
                 self.run_all()
             case (int(), None, None):
-                self:run_year(y)
+                self.run_year(y)
             case (int(), int(), None):
                 self.run_day(y, d)
             case (int(), int(), int()):

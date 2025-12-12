@@ -62,26 +62,25 @@ class Coordinate2D(object):
     def __le__(self, other):
         return self.y <= other.y or self.x <= other.x
 
-class Map2D(MutableMapping[Coordinate2D, T]):
-    def __init__(self, m: list[list[T]], t: T):
-        if not hasattr(t, 'EMPTY'):
-            raise Exception(f"{T} does not implement EMPTY")
-        
+class Grid2D(MutableMapping[Coordinate2D, T]):
+    def __init__(self, m: list[list[T]], t: T):        
         self.__t = t
-        self.__map: list[list[T]] = m
-        self.__size_x = len(self.__map[0])
-        self.__size_y = len(self.__map)
+        self.__grid: list[list[T]] = m
+        self.__size_x = len(self.__grid[0])
+        self.__size_y = len(self.__grid)
         self.__max_x = self.__size_x - 1
         self.__max_y = self.__size_y - 1
 
     def __setitem__(self, k: Coordinate2D, v: T) -> None:
-        self.__map[k.y][k.x] = v
+        self.__grid[k.y][k.x] = v
 
     def __getitem__(self, k: Coordinate2D) -> T:
-        return self.__map[k.y][k.x]
+        return self.__grid[k.y][k.x]
 
     def __delitem__(self, k: Coordinate2D):
-        self.__map[k.y][k.x] = self.__t.EMPTY
+        if not hasattr(t, 'EMPTY'):
+            raise Exception(f"{self.__t} does not implement EMPTY")
+        self.__grid[k.y][k.x] = self.__t.EMPTY
 
     def __iter__(self):
         for y in range(self.__size_y):
@@ -92,13 +91,30 @@ class Map2D(MutableMapping[Coordinate2D, T]):
         return (self.__size_x) * (self.__size_y)
 
     def __repr__(self) -> str:
-        s = ""
+        items: list[list[str]] = list()
+        largest_item = 0
         for y in range(self.__size_y):
+            r: list[str] = list()
             for x in range(self.__size_x):
                 v = self.get(Coordinate2D(x, y)).value
-                s += v
-            s += "\n"
+
+                if largest_item < len(v):
+                    largest_item = len(v)
+
+                r.append(v)
+            items.append(r)
+        
+        s = ""
+        for r in items:
+            for i, c in enumerate(r):
+                spacer = ' '
+                if i == len(r) - 1:
+                    spacer = ''
+                s += f"{c:>{largest_item}}{spacer}"
+            s += '\n'
+
         return s
+
 
     def __contains__(self, o: object) -> bool:
         if isinstance(o, Coordinate2D):
@@ -116,9 +132,18 @@ class Map2D(MutableMapping[Coordinate2D, T]):
         
         return True
         
-    def get_coords_by_type(self, t: T):
+    def get_coords_by_type(self, t: T) -> list[Coordinate2D]:
         return filter(lambda k: self.get(k) == t, self.keys())
 
+    def get_columns(self) -> Iterable[list[T]]:
+        for x in range(self.__size_x):
+            yield [self.__grid[y][x] for y in range(self.__size_y)]
+
+    def get_rows(self, i: int) -> Iterable[list[T]]:
+        for y in range(self.__size_y):
+            yield self.__grid[y]
+
     @staticmethod
-    def from_str(s: str, t: T) -> Self:
-        return Map2D[T]([[t(c) for c in l] for l in s.splitlines()], t)
+    def from_str(s: str, t: T, sep_v: str = "\n", sep_h: str = '') -> Self:
+        return Grid2D[T]([[t(v) for v in h.split(sep_h)] for h in s.split(sep_v) if h != ""], t)
+
