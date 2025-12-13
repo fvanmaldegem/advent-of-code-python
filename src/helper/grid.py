@@ -21,13 +21,13 @@ class Direction(tuple[int, int], Enum):
     NORTHWEST  = (-1, -1)
 
 @total_ordering
-class Coordinate2D(object):
+class Coordinate2D:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
     def get_relative(self, direction: Direction, amount: int = 1) -> Self:
-        new = Coordinate2D(self.x, self.y)
+        new = self.copy()
         new.walk(direction, amount)
         return new
 
@@ -40,6 +40,9 @@ class Coordinate2D(object):
         y_amount = direction.value[1] * amount
         self.x = self.x + x_amount
         self.y = self.y + y_amount
+
+    def copy(self) -> Self:
+        return Coordinate2D(self.x, self.y)
 
     def __repr__(self) -> str:
         return f"Coordinate2D({self.x},{self.y})"
@@ -132,7 +135,7 @@ class Grid2D(MutableMapping[Coordinate2D, T]):
         
         return True
         
-    def get_coords_by_type(self, t: T) -> list[Coordinate2D]:
+    def get_coords_by_type(self, t: T) -> Iterator[Coordinate2D]:
         return filter(lambda k: self.get(k) == t, self.keys())
 
     def get_columns(self) -> Iterable[list[T]]:
@@ -144,6 +147,10 @@ class Grid2D(MutableMapping[Coordinate2D, T]):
             yield self.__grid[y]
 
     @staticmethod
-    def from_str(s: str, t: T, sep_v: str = "\n", sep_h: str = '') -> Self:
-        return Grid2D[T]([[t(v) for v in h.split(sep_h)] for h in s.split(sep_v) if h != ""], t)
+    def from_str(s: str, t: T, sep_v: str = "\n", sep_h: str = None) -> Self:
+        split_h = lambda s: s.split(sep_h)
+        if sep_h is None:
+            split_h = lambda s: list(s)
+        
+        return Grid2D[T]([[t(v) for v in split_h(h)] for h in s.split(sep_v) if h != ""], t)
 
