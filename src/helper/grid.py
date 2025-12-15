@@ -2,6 +2,7 @@ from typing import Any, Self, TypeVar, Generic
 from collections.abc import Iterator, Mapping, MutableMapping, Callable, Iterable, MappingView, ItemsView
 from enum import Enum, StrEnum
 from functools import total_ordering
+from math import sqrt
 
 
 class Position(StrEnum):
@@ -154,3 +155,20 @@ class Grid2D(MutableMapping[Coordinate2D, T]):
         
         return Grid2D[T]([[t(v) for v in split_h(h)] for h in s.split(sep_v) if h != ""], t)
 
+class Coordinate3D:
+    def __init__(self, x: int, y: int , z: int):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def straight_line_distance(self, other: Self) -> float:
+        return sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
+
+    def __repr__(self) -> str:
+        return f"Coordinate3D({self.x},{self.y},{self.z})"
+
+    def __key(self):
+        return (self.x, self.y, self.z)
+
+    def __hash__(self):
+        return hash(self.__key())
